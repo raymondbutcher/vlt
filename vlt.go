@@ -47,6 +47,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 // The key/value string positions in varnishlog output.
@@ -129,15 +130,26 @@ func (req *Request) SendRequest(target_host string) {
 		Host:       original_host,
 	}
 
+	start := time.Now()
+
 	// Use the lower level Transport.RoundTrip
 	// to avoid http.Client's redirect handling.
 	http_resp, err := http.DefaultTransport.RoundTrip(http_req)
 
+	elapsed := time.Since(start) / time.Millisecond
+
+	// Ensure that negative numbers are not displayed. This can happen in virtual
+	// machines. There is no monononic clock functionality in Go at this time, so
+	// for now I will just ensure that everything shows as 1 millisecond or more.
+	if elapsed < 1 {
+		elapsed = 1
+	}
+
 	if err == nil {
 		req_url.Host = original_host
-		log.Printf("[%d] %s %s\n", http_resp.StatusCode, req.Method, req_url)
+		log.Printf("[%dms] [%d] %s %s\n", elapsed, http_resp.StatusCode, req.Method, req_url)
 	} else {
-		log.Printf("[%s] %s %s\n", err, req.Method, req_url)
+		log.Printf("[%dms] [%s] %s %s\n", elapsed, err, req.Method, req_url)
 	}
 
 }
