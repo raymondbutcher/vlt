@@ -29,7 +29,7 @@ Building
 Requirements:
 * Go
 
-Compared to Varnishreply
+Compared to varnishreplay
 ----
 
 Similar results can be had with varnishreplay, which is included with varnish.
